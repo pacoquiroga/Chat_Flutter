@@ -24,7 +24,7 @@ class MiAplicacion extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Aplicación de Chat',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
       home: PantallaLoginFirebase(),
     );

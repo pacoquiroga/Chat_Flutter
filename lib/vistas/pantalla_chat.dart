@@ -51,106 +51,116 @@ class _PantallaChatState extends State<PantallaChat> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
         title: Text('Chat con ${widget.otroUsuario}'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<List<Mensaje>>(
-              stream: _controladorChat.obtenerMensajes(
-                widget.usuarioActual,
-                widget.otroUsuario,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+      body: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+          colors: [Color(0xff232526), Color(0xff414345)],
+          stops: [0, 1],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )),
+        child: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<List<Mensaje>>(
+                stream: _controladorChat.obtenerMensajes(
+                  widget.usuarioActual,
+                  widget.otroUsuario,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
 
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                final mensajes = snapshot.data!;
+                  final mensajes = snapshot.data!;
 
-                return ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.all(8.0),
-                  itemCount: mensajes.length,
-                  itemBuilder: (context, index) {
-                    final mensaje = mensajes[index];
-                    final esRemitente =
-                        mensaje.remitente == widget.usuarioActual;
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(8.0),
+                    itemCount: mensajes.length,
+                    itemBuilder: (context, index) {
+                      final mensaje = mensajes[index];
+                      final esRemitente =
+                          mensaje.remitente == widget.usuarioActual;
 
-                    return Align(
-                      alignment: esRemitente
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4.0),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0, vertical: 8.0),
-                        decoration: BoxDecoration(
-                          color:
-                              esRemitente ? Colors.blue[100] : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: esRemitente
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(mensaje.texto),
-                            const SizedBox(height: 2),
-                            Text(
-                              mensaje.hora,
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
+                      return Align(
+                        alignment: esRemitente
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4.0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 8.0),
+                          decoration: BoxDecoration(
+                            color: esRemitente
+                                ? Colors.blue[100]
+                                : Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: esRemitente
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(mensaje.texto),
+                              const SizedBox(height: 2),
+                              Text(
+                                mensaje.hora,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey[600],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: const BoxDecoration(
+                color: Colors.black,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      cursorColor: Colors.white,
+                      style: const TextStyle(
+                        color: Colors.white,
                       ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, -1),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controladorMensaje,
-                    decoration: const InputDecoration(
-                      hintText: 'Escribe un mensaje...',
-                      border: InputBorder.none,
+                      controller: _controladorMensaje,
+                      decoration: const InputDecoration(
+                        hintText: 'Escribe un mensaje...',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: Colors.white54),
+                      ),
+                      onSubmitted: (_) => _enviarMensaje(),
                     ),
-                    onSubmitted: (_) => _enviarMensaje(),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _enviarMensaje,
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    color: Colors.blue,
+                    onPressed: _enviarMensaje,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -22,18 +22,36 @@ class _PantallaChatState extends State<PantallaChats> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Nuevo Chat'),
+        backgroundColor: Colors.black,
+        title: const Text(
+          'Nuevo Chat',
+          style: TextStyle(color: Colors.white),
+        ),
         content: TextField(
           controller: _emailController,
           decoration: const InputDecoration(
             labelText: 'Email del contacto',
             hintText: 'Ingrese el email del usuario',
+            labelStyle: TextStyle(
+              color: Colors.white54,
+            ),
+            hintStyle: TextStyle(
+              color: Colors.white38,
+            ),
           ),
           keyboardType: TextInputType.emailAddress,
+          cursorColor: Colors.white,
+          style: const TextStyle(
+            color: Colors.white,
+          ),
         ),
         actions: [
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
@@ -44,6 +62,10 @@ class _PantallaChatState extends State<PantallaChats> {
                 _emailController.clear();
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Crear Chat'),
           ),
         ],
@@ -160,10 +182,13 @@ class _PantallaChatState extends State<PantallaChats> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
         title: const Text('Mis Chats'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
+            color: Colors.blue,
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               if (mounted) {
@@ -178,52 +203,88 @@ class _PantallaChatState extends State<PantallaChats> {
           ),
         ],
       ),
-      body: StreamBuilder<List<Chat>>(
-        stream: _obtenerChats(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+      body: Container(
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+          colors: [Color(0xff232526), Color(0xff414345)],
+          stops: [0, 1],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: StreamBuilder<List<Chat>>(
+            stream: _obtenerChats(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          final chats = snapshot.data!;
-          if (chats.isEmpty) {
-            return const Center(child: Text('No hay chats disponibles'));
-          }
-
-          return ListView.builder(
-            itemCount: chats.length,
-            itemBuilder: (context, index) {
-              final chat = chats[index];
-              final otroUsuario = chat.usuario1 == currentUser?.email
-                  ? chat.usuario2
-                  : chat.usuario1;
-
-              return ListTile(
-                title: Text(otroUsuario),
-                subtitle: Text(chat.ultimoMensaje),
-                leading: const CircleAvatar(
-                  child: Icon(Icons.person),
-                ),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PantallaChat(
-                      usuarioActual: currentUser?.email ?? '',
-                      otroUsuario: otroUsuario,
-                    ),
+              final chats = snapshot.data!;
+              if (chats.isEmpty) {
+                return const Center(
+                    child: Text(
+                  'No hay chats disponibles',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 20,
                   ),
+                ));
+              }
+
+              return ListView.separated(
+                itemCount: chats.length,
+                separatorBuilder: (context, index) => const Divider(
+                  height: 1,
+                  color: Colors.grey,
                 ),
+                itemBuilder: (context, index) {
+                  final chat = chats[index];
+                  final otroUsuario = chat.usuario1 == currentUser?.email
+                      ? chat.usuario2
+                      : chat.usuario1;
+
+                  return ListTile(
+                    title: Text(
+                      otroUsuario,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      chat.ultimaActividad.toString().substring(0, 19),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                      ),
+                    ),
+                    leading: const CircleAvatar(
+                      child: Icon(Icons.person),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PantallaChat(
+                          usuarioActual: currentUser?.email ?? '',
+                          otroUsuario: otroUsuario,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _mostrarDialogoNuevoChat,
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.blue,
         child: const Icon(Icons.chat),
       ),
     );

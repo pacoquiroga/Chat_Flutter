@@ -122,18 +122,18 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue, Colors.lightBlue],
-          ),
-        ),
+            gradient: LinearGradient(
+          colors: [Color(0xff232526), Color(0xff414345)],
+          stops: [0, 1],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )),
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Card(
-                elevation: 8,
+                color: Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
@@ -212,11 +212,23 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          cursorColor: Colors.white,
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
                           decoration: InputDecoration(
                             labelText: 'Email',
                             prefixIcon: const Icon(Icons.email),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
+                            ),
+                            labelStyle: const TextStyle(
+                              color: Colors.white54,
+                            ),
+                            prefixIconColor: WidgetStateColor.resolveWith(
+                              (states) => states.contains(WidgetState.focused)
+                                  ? Colors.blue
+                                  : Colors.white54,
                             ),
                           ),
                           validator: (value) {
@@ -235,11 +247,23 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
                         TextFormField(
                           controller: _passwordController,
                           obscureText: true,
+                          cursorColor: Colors.white,
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
                           decoration: InputDecoration(
                             labelText: 'Contraseña',
                             prefixIcon: const Icon(Icons.lock),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
+                            ),
+                            labelStyle: const TextStyle(
+                              color: Colors.white54,
+                            ),
+                            prefixIconColor: WidgetStateColor.resolveWith(
+                              (states) => states.contains(WidgetState.focused)
+                                  ? Colors.blue
+                                  : Colors.white54,
                             ),
                           ),
                           validator: (value) {
@@ -256,11 +280,23 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
                           TextFormField(
                             controller: _confirmPasswordController,
                             obscureText: true,
+                            cursorColor: Colors.white,
+                            style: const TextStyle(
+                              color: Colors.white,
+                            ),
                             decoration: InputDecoration(
                               labelText: 'Confirmar Contraseña',
                               prefixIcon: const Icon(Icons.lock_outline),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
+                              ),
+                              labelStyle: const TextStyle(
+                                color: Colors.white54,
+                              ),
+                              prefixIconColor: WidgetStateColor.resolveWith(
+                                (states) => states.contains(WidgetState.focused)
+                                    ? Colors.blue
+                                    : Colors.white54,
                               ),
                             ),
                             validator: (value) {
@@ -286,6 +322,8 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
                           ),
                           onPressed: isLoading
                               ? null

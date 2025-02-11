@@ -8,23 +8,51 @@ class PantallaChat extends StatefulWidget {
   final String usuarioActual;
   final String otroUsuario;
 
-  PantallaChat({
+  const PantallaChat({
+    super.key,
     required this.usuarioActual,
     required this.otroUsuario,
   });
 
   @override
-  _PantallaChatState createState() => _PantallaChatState();
+  State<PantallaChat> createState() => _PantallaChatState();
 }
 
 class _PantallaChatState extends State<PantallaChat> {
   final ControladorChat _controladorChat = ControladorChat();
   final TextEditingController _controladorMensaje = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  void _enviarMensaje() {
+    if (_controladorMensaje.text.trim().isEmpty) return;
+
+    _controladorChat.enviarMensaje(
+      Mensaje(
+        remitente: widget.usuarioActual,
+        receptor: widget.otroUsuario,
+        texto: _controladorMensaje.text.trim(),
+      ),
+    );
+
+    _controladorMensaje.clear();
+    // Scroll al último mensaje
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Chat con ${widget.otroUsuario}')),
+      appBar: AppBar(
+        title: Text('Chat con ${widget.otroUsuario}'),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -39,39 +67,43 @@ class _PantallaChatState extends State<PantallaChat> {
                 }
 
                 if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 }
 
                 final mensajes = snapshot.data!;
+
                 return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(8.0),
                   itemCount: mensajes.length,
                   itemBuilder: (context, index) {
-                    final msg = mensajes[index];
-                    final esRemitente = msg.remitente == widget.usuarioActual;
+                    final mensaje = mensajes[index];
+                    final esRemitente =
+                        mensaje.remitente == widget.usuarioActual;
 
                     return Align(
                       alignment: esRemitente
                           ? Alignment.centerRight
                           : Alignment.centerLeft,
                       child: Container(
-                        margin: EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        padding: EdgeInsets.all(12.0),
+                        margin: const EdgeInsets.symmetric(vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0, vertical: 8.0),
                         decoration: BoxDecoration(
                           color:
                               esRemitente ? Colors.blue[100] : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(8.0),
+                          borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: Column(
                           crossAxisAlignment: esRemitente
                               ? CrossAxisAlignment.end
                               : CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(msg.texto),
+                            Text(mensaje.texto),
+                            const SizedBox(height: 2),
                             Text(
-                              msg.hora,
+                              mensaje.hora,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Colors.grey[600],
@@ -86,30 +118,34 @@ class _PantallaChatState extends State<PantallaChat> {
               },
             ),
           ),
-          Padding(
+          Container(
             padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+            ),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controladorMensaje,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Escribe un mensaje...',
+                      border: InputBorder.none,
                     ),
+                    onSubmitted: (_) => _enviarMensaje(),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: () {
-                    if (_controladorMensaje.text.isNotEmpty) {
-                      _controladorChat.enviarMensaje(Mensaje(
-                        remitente: widget.usuarioActual,
-                        receptor: widget.otroUsuario,
-                        texto: _controladorMensaje.text,
-                      ));
-                      _controladorMensaje.clear();
-                    }
-                  },
+                  icon: const Icon(Icons.send),
+                  onPressed: _enviarMensaje,
                 ),
               ],
             ),
@@ -117,5 +153,12 @@ class _PantallaChatState extends State<PantallaChat> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controladorMensaje.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 }

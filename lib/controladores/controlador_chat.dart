@@ -6,45 +6,28 @@ class ControladorChat {
   final DatabaseReference _mensajesRef =
       FirebaseDatabase.instance.ref().child('mensajes');
 
-  Future<void> enviarMensaje(Mensaje mensaje) async {
-    await _mensajesRef.push().set(mensaje.toJson());
-  }
-
-  Stream<List<Mensaje>> obtenerMensajes(
-      String usuarioActual, String otroUsuario) {
+  Stream<List<Mensaje>> obtenerMensajes(String usuario1, String usuario2) {
     return _mensajesRef.onValue.map((event) {
-      final Map<dynamic, dynamic>? data =
-          event.snapshot.value as Map<dynamic, dynamic>?;
-
+      final Map<dynamic, dynamic>? data = event.snapshot.value as Map?;
       if (data == null) return [];
 
-      var mensajes = data.entries
-          .map((e) => Mensaje.fromJson(Map<String, dynamic>.from(e.value)))
-          .where((mensaje) =>
-              (mensaje.remitente == usuarioActual &&
-                  mensaje.receptor == otroUsuario) ||
-              (mensaje.remitente == otroUsuario &&
-                  mensaje.receptor == usuarioActual))
-          .toList();
-
-      // Ordenar mensajes por hora incluyendo segundos
-      mensajes.sort((a, b) {
-        var horaA = a.hora.split(':').map(int.parse).toList();
-        var horaB = b.hora.split(':').map(int.parse).toList();
-
-        // Comparar horas
-        if (horaA[0] != horaB[0]) {
-          return horaA[0].compareTo(horaB[0]);
+      List<Mensaje> mensajes = [];
+      data.forEach((key, value) {
+        final mensaje = Mensaje.fromMap(Map<String, dynamic>.from(value));
+        // Filtrar mensajes solo entre estos dos usuarios
+        if ((mensaje.remitente == usuario1 && mensaje.receptor == usuario2) ||
+            (mensaje.remitente == usuario2 && mensaje.receptor == usuario1)) {
+          mensajes.add(mensaje);
         }
-        // Comparar minutos
-        if (horaA[1] != horaB[1]) {
-          return horaA[1].compareTo(horaB[1]);
-        }
-        // Comparar segundos
-        return horaA[2].compareTo(horaB[2]);
       });
 
+      // Ordenar mensajes por timestamp
+      mensajes.sort((a, b) => a.timestamp.compareTo(b.timestamp));
       return mensajes;
     });
+  }
+
+  Future<void> enviarMensaje(Mensaje mensaje) async {
+    await _mensajesRef.push().set(mensaje.toMap());
   }
 }

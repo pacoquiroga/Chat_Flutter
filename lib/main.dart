@@ -3,7 +3,17 @@
 import 'package:flutter/material.dart';
 import 'vistas/pantalla_login.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'firebase_options.dart';
+
+FirebaseDatabase database = FirebaseDatabase.instance;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MiAplicacion());
 }
 

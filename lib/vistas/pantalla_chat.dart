@@ -5,9 +5,13 @@ import '../controladores/controlador_chat.dart';
 import '../modelos/mensaje.dart';
 
 class PantallaChat extends StatefulWidget {
-  final String usuario;
+  final String usuarioActual;
+  final String otroUsuario;
 
-  PantallaChat({required this.usuario});
+  PantallaChat({
+    required this.usuarioActual,
+    required this.otroUsuario,
+  });
 
   @override
   _PantallaChatState createState() => _PantallaChatState();
@@ -16,61 +20,68 @@ class PantallaChat extends StatefulWidget {
 class _PantallaChatState extends State<PantallaChat> {
   final ControladorChat _controladorChat = ControladorChat();
   final TextEditingController _controladorMensaje = TextEditingController();
-  List<Mensaje> _mensajes = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _cargarMensajes();
-    _controladorChat.conectarSocket((mensaje) {
-      setState(() {
-        _mensajes.add(mensaje);
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _controladorChat.desconectarSocket();
-    super.dispose();
-  }
-
-  void _cargarMensajes() async {
-    try {
-      final mensajes = await _controladorChat.obtenerMensajes();
-      setState(() {
-        _mensajes = mensajes;
-      });
-    } catch (e) {
-      print('Error al cargar mensajes: $e');
-    }
-  }
-
-  void _enviarMensaje() {
-    if (_controladorMensaje.text.isNotEmpty) {
-      final mensaje = Mensaje(
-        username: widget.usuario,
-        message: _controladorMensaje.text,
-      );
-      _controladorChat.enviarMensaje(mensaje);
-      _controladorMensaje.clear();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Sala de Chat')),
+      appBar: AppBar(title: Text('Chat con ${widget.otroUsuario}')),
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: _mensajes.length,
-              itemBuilder: (context, index) {
-                final msg = _mensajes[index];
-                return ListTile(
-                  title: Text(msg.username),
-                  subtitle: Text(msg.message),
+            child: StreamBuilder<List<Mensaje>>(
+              stream: _controladorChat.obtenerMensajes(
+                widget.usuarioActual,
+                widget.otroUsuario,
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                final mensajes = snapshot.data!;
+                return ListView.builder(
+                  itemCount: mensajes.length,
+                  itemBuilder: (context, index) {
+                    final msg = mensajes[index];
+                    final esRemitente = msg.remitente == widget.usuarioActual;
+
+                    return Align(
+                      alignment: esRemitente
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 4.0,
+                        ),
+                        padding: EdgeInsets.all(12.0),
+                        decoration: BoxDecoration(
+                          color:
+                              esRemitente ? Colors.blue[100] : Colors.grey[300],
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: esRemitente
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            Text(msg.texto),
+                            Text(
+                              msg.hora,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -82,12 +93,23 @@ class _PantallaChatState extends State<PantallaChat> {
                 Expanded(
                   child: TextField(
                     controller: _controladorMensaje,
-                    decoration: InputDecoration(hintText: 'Escribe un mensaje'),
+                    decoration: InputDecoration(
+                      hintText: 'Escribe un mensaje...',
+                    ),
                   ),
                 ),
                 IconButton(
                   icon: Icon(Icons.send),
-                  onPressed: _enviarMensaje,
+                  onPressed: () {
+                    if (_controladorMensaje.text.isNotEmpty) {
+                      _controladorChat.enviarMensaje(Mensaje(
+                        remitente: widget.usuarioActual,
+                        receptor: widget.otroUsuario,
+                        texto: _controladorMensaje.text,
+                      ));
+                      _controladorMensaje.clear();
+                    }
+                  },
                 ),
               ],
             ),

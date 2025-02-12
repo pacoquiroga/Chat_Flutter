@@ -18,6 +18,14 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   // Agregar esta función para validar el formato del email
   bool isValidEmail(String email) {
     return RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+').hasMatch(email);
@@ -77,7 +85,7 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
     }
   }
 
-  Future<void> _handleSignin() async {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         isLoading = true;
@@ -88,31 +96,18 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
           email: _emailController.text,
           password: _passwordController.text,
         );
-
-        if (mounted) {
-          // Reemplazar la navegación a /chat por la nueva pantalla
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PantallaChats(),
-            ),
-          );
-        }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => PantallaChats()),
+        );
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString()),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
       } finally {
-        if (mounted) {
-          setState(() {
-            isLoading = false;
-          });
-        }
+        setState(() {
+          isLoading = false;
+        });
       }
     }
   }
@@ -331,7 +326,7 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
                                   if (!isLogin) {
                                     _handleSignup();
                                   } else {
-                                    _handleSignin();
+                                    _handleLogin();
                                   }
                                 },
                           child: isLoading
@@ -359,13 +354,5 @@ class _PantallaLoginFirebaseState extends State<PantallaLoginFirebase> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
   }
 }

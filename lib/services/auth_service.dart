@@ -48,10 +48,13 @@ class AuthService {
     required String password,
   }) async {
     try {
-      return await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
+      return userCredential;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         throw 'Usuario no encontrado';
